@@ -16,9 +16,13 @@ navigator.mediaDevices.getUserMedia({
     });
 
 async function loadModel() {
-    const model = await tf.loadGraphModel('https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1');
-    console.log('Model učitan:', model);
-    return model;
+    try {
+        const model = await tf.loadGraphModel('https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1');
+        console.log('Model učitan:', model);
+        return model;
+    } catch (error) {
+        console.error('Error loading model:', error);
+    }
 }
 
 function drawBoundingBox(image, ymin, xmin, ymax, xmax, label) {
@@ -30,28 +34,34 @@ function drawBoundingBox(image, ymin, xmin, ymax, xmax, label) {
 }
 
 async function detectObjects(model) {
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    try {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const input = tf.browser.fromPixels(canvas).toFloat();
-    const expanded = input.expandDims(0);
-    const result = await model.executeAsync(expanded);
+        const input = tf.browser.fromPixels(canvas).toFloat().expandDims(0);
+        console.log('Input tensor:', input);
 
-    const boxes = result[0].arraySync();
-    const scores = result[1].arraySync();
-    const classes = result[2].arraySync();
+        const result = await model.executeAsync(input);
+        console.log('Detection result:', result);
 
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const boxes = result[0].arraySync();
+        const scores = result[1].arraySync();
+        const classes = result[2].arraySync();
 
-    for (let i = 0; i < scores[0].length; i++) {
-        if (scores[0][i] > 0.5) {
-            const [ymin, xmin, ymax, xmax] = boxes[0][i];
-            const label = classes[0][i];
-            drawBoundingBox(canvas, ymin, xmin, ymax, xmax, label);
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < scores[0].length; i++) {
+            if (scores[0][i] > 0.5) {
+                const [ymin, xmin, ymax, xmax] = boxes[0][i];
+                const label = classes[0][i];
+                drawBoundingBox(canvas, ymin, xmin, ymax, xmax, label);
+            }
         }
-    }
 
-    tf.dispose([input, expanded, result]);
+        tf.dispose([input, result]);
+    } catch (error) {
+        console.error('Error detecting objects:', error);
+    }
 }
 
 async function main() {
