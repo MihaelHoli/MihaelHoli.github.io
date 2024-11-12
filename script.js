@@ -1,5 +1,8 @@
 const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const context = canvas.getContext('2d');
 const result = document.getElementById('result');
+const captureButton = document.getElementById('captureButton');
 
 navigator.mediaDevices.getUserMedia({ 
     video: true 
@@ -9,87 +12,53 @@ navigator.mediaDevices.getUserMedia({
     })
     .catch(error => {
         console.error("Pristup kameri nije moguć:", error);
+        result.innerText = "Pristup kameri nije moguć. Provjerite postavke kamere.";
     });
 
 async function loadModel() {
-    const model = await tf.loadLayersModel('URL_DO_VAŠEG_MODELA/model.json');
+    const model = await tf.loadGraphModel('https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1');
     console.log('Model učitan:', model);
+    return model;
 }
 
-loadModel();
+function drawBoundingBox(image, ymin, xmin, ymax, xmax, label) {
+    context.strokeStyle = '#ffa500';
+    context.lineWidth = 2;
+    context.strokeRect(xmin * image.width, ymin * image.height, (xmax - xmin) * image.width, (ymax - ymin) * image.height);
+    context.fillStyle = '#ffa500';
+    context.fillText(label, xmin * image.width, ymin * image.height > 10 ? ymin * image.height - 5 : 10);
+}
 
-function detectShapes() {
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const context = canvas.getContext('2d');
+async function detectObjects(model) {
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    let src = cv.imread(canvas);
-    let gray = new cv.Mat();
-    let blurred = new cv.Mat();
-    let edges = new cv.Mat();
 
-    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
-    cv.Canny(blurred, edges, 50, 150);
+    const input = tf.browser.fromPixels(canvas).toFloat();
+    const expanded = input.expandDims(0);
+    const result = await model.executeAsync(expanded);
 
-    let contours = new cv.MatVector();
-    let hierarchy = new cv.Mat();
-    cv.findContours(edges, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
+    const boxes = result[0].arraySync();
+    const scores = result[1].arraySync();
+    const classes = result[2].arraySync();
 
-    for (let i = 0; i < contours.size(); i++) {
-        let contour = contours.get(i);
-        let perimeter = cv.arcLength(contour, true);
-        let approx = new cv.Mat();
-        cv.approxPolyDP(contour, approx, 0.02 * perimeter, true);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        let shape = "Višestrani oblik";
-        if (approx.rows == 3) {
-            shape = "Trokut";
-        } else if (approx.rows == 4) {
-            shape = "Kvadrat ili pravokutnik";
-        } else {
-            let area = cv.contourArea(contour);
-            let boundingRect = cv.boundingRect(contour);
-            let radius = boundingRect.width / 2;
-            if (Math.abs(1 - (boundingRect.width / boundingRect.height)) <= 0.2 &&
-                Math.abs(1 - (area / (Math.PI * Math.pow(radius, 2)))) <= 0.2) {
-                shape = "Krug";
-            }
+    for (let i = 0; i < scores[0].length; i++) {
+        if (scores[0][i] > 0.5) {
+            const [ymin, xmin, ymax, xmax] = boxes[0][i];
+            const label = classes[0][i];
+            drawBoundingBox(canvas, ymin, xmin, ymax, xmax, label);
         }
-
-        let boundingRect = cv.boundingRect(contour);
-        drawBoundingBox(boundingRect, shape);
-
-        approx.delete();
-        contour.delete();
     }
 
-    src.delete();
-    gray.delete();
-    blurred.delete();
-    edges.delete();
-    contours.delete();
-    hierarchy.delete();
+    tf.dispose([input, expanded, result]);
 }
 
-function drawBoundingBox(rect, label) {
-    const boundingBox = document.createElement('div');
-    boundingBox.className = 'bounding-box';
-    boundingBox.style.left = `${rect.x}px`;
-    boundingBox.style.top = `${rect.y}px`;
-    boundingBox.style.width = `${rect.width}px`;
-    boundingBox.style.height = `${rect.height}px`;
-    boundingBox.innerText = label;
-    document.body.appendChild(boundingBox);
+async function main() {
+    const model = await loadModel();
+    captureButton.addEventListener('click', () => {
+        detectObjects(model);
+    });
 }
 
-function clearBoundingBoxes() {
-    const boxes = document.querySelectorAll('.bounding-box');
-    boxes.forEach(box => box.remove());
-}
-
-setInterval(() => {
-    clearBoundingBoxes();
-    detectShapes();
-}, 100);
+main();

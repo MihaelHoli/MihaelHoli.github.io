@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/package",
   "name": "shape-recognition-app",
   "version": "1.0.0",
   "description": "A web application for recognizing geometric shapes using TensorFlow.js and OpenCV.js",

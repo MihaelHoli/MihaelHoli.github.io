@@ -13,11 +13,11 @@ h1 {
     margin-bottom: 20px;
 }
 
-video, canvas {
-    border: 2px solid #fff;
+video {
+    border: 2px solid #ffa500; /* Orange border */
     border-radius: 8px;
     margin-top: 10px;
-    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 8px rgba(255, 165, 0, 0.1); /* Orange shadow */
 }
 
 button {
