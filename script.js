@@ -2,7 +2,7 @@ const video = document.getElementById('video');
 const result = document.getElementById('result');
 
 navigator.mediaDevices.getUserMedia({ 
-    video: { facingMode: { exact: "environment" } } 
+    video: true 
 })
     .then(stream => {
         video.srcObject = stream;
