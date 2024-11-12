@@ -1,10 +1,9 @@
 const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const context = canvas.getContext('2d');
 const result = document.getElementById('result');
-const captureButton = document.getElementById('captureButton');
 
-navigator.mediaDevices.getUserMedia({ video: true })
+navigator.mediaDevices.getUserMedia({ 
+    video: { facingMode: { exact: "environment" } } 
+})
     .then(stream => {
         video.srcObject = stream;
     })
@@ -12,8 +11,18 @@ navigator.mediaDevices.getUserMedia({ video: true })
         console.error("Pristup kameri nije moguć:", error);
     });
 
-captureButton.addEventListener('click', () => {
-    
+async function loadModel() {
+    const model = await tf.loadLayersModel('URL_DO_VAŠEG_MODELA/model.json');
+    console.log('Model učitan:', model);
+}
+
+loadModel();
+
+function detectShapes() {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext('2d');
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
     let src = cv.imread(canvas);
     let gray = new cv.Mat();
@@ -34,21 +43,23 @@ captureButton.addEventListener('click', () => {
         let approx = new cv.Mat();
         cv.approxPolyDP(contour, approx, 0.02 * perimeter, true);
 
+        let shape = "Višestrani oblik";
         if (approx.rows == 3) {
-            result.innerText = "Trokut";
+            shape = "Trokut";
         } else if (approx.rows == 4) {
-            result.innerText = "Kvadrat ili pravokutnik";
+            shape = "Kvadrat ili pravokutnik";
         } else {
             let area = cv.contourArea(contour);
             let boundingRect = cv.boundingRect(contour);
             let radius = boundingRect.width / 2;
             if (Math.abs(1 - (boundingRect.width / boundingRect.height)) <= 0.2 &&
                 Math.abs(1 - (area / (Math.PI * Math.pow(radius, 2)))) <= 0.2) {
-                result.innerText = "Krug";
-            } else {
-                result.innerText = "Višestrani oblik";
+                shape = "Krug";
             }
         }
+
+        let boundingRect = cv.boundingRect(contour);
+        drawBoundingBox(boundingRect, shape);
 
         approx.delete();
         contour.delete();
@@ -60,11 +71,25 @@ captureButton.addEventListener('click', () => {
     edges.delete();
     contours.delete();
     hierarchy.delete();
-});
-
-async function loadModel() {
-    const model = await tf.loadLayersModel('URL_DO_VAŠEG_MODELA/model.json');
-    console.log('Model učitan:', model);
 }
 
-loadModel();
+function drawBoundingBox(rect, label) {
+    const boundingBox = document.createElement('div');
+    boundingBox.className = 'bounding-box';
+    boundingBox.style.left = `${rect.x}px`;
+    boundingBox.style.top = `${rect.y}px`;
+    boundingBox.style.width = `${rect.width}px`;
+    boundingBox.style.height = `${rect.height}px`;
+    boundingBox.innerText = label;
+    document.body.appendChild(boundingBox);
+}
+
+function clearBoundingBoxes() {
+    const boxes = document.querySelectorAll('.bounding-box');
+    boxes.forEach(box => box.remove());
+}
+
+setInterval(() => {
+    clearBoundingBoxes();
+    detectShapes();
+}, 100);
