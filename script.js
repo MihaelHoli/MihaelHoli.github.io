@@ -51,12 +51,14 @@ async function detectObjects(model) {
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+        result.innerHTML = ''; // Clear previous results
         for (let i = 0; i < scores[0].length; i++) {
             if (scores[0][i] > 0.5) {
                 const [ymin, xmin, ymax, xmax] = boxes[0][i];
                 const label = classes[0][i];
                 console.log(`Detected ${label} with score ${scores[0][i]} at [${ymin}, ${xmin}, ${ymax}, ${xmax}]`);
                 drawBoundingBox(canvas, ymin, xmin, ymax, xmax, label);
+                result.innerHTML += `Detected ${label} with score ${scores[0][i]}<br>`;
             }
         }
 
