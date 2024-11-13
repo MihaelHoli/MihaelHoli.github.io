@@ -9,6 +9,7 @@ navigator.mediaDevices.getUserMedia({
 })
     .then(stream => {
         video.srcObject = stream;
+        console.log("Camera access granted.");
     })
     .catch(error => {
         console.error("Pristup kameri nije moguć:", error);
