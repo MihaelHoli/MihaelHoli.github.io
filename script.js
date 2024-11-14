@@ -16,66 +16,58 @@ navigator.mediaDevices.getUserMedia({
         result.innerText = "Pristup kameri nije moguć. Provjerite postavke kamere.";
     });
 
-async function loadModel() {
-    try {
-        const model = await tf.loadGraphModel('https://storage.googleapis.com/tfjs-models/savedmodel/ssdlite_mobilenet_v2/model.json');
-        console.log('Model učitan:', model);
-        return model;
-    } catch (error) {
-        console.error('Error loading model:', error);
-    }
-}
+function detectShapes() {
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const src = cv.imread(canvas);
+    const gray = new cv.Mat();
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+    const blurred = new cv.Mat();
+    cv.GaussianBlur(gray, blurred, new cv.Size(5, 5), 0);
+    const edges = new cv.Mat();
+    cv.Canny(blurred, edges, 50, 150);
+    const contours = new cv.MatVector();
+    const hierarchy = new cv.Mat();
+    cv.findContours(edges, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
 
-function drawBoundingBox(image, ymin, xmin, ymax, xmax, label) {
-    context.strokeStyle = '#ffa500';
-    context.lineWidth = 2;
-    context.strokeRect(xmin * image.width, ymin * image.height, (xmax - xmin) * image.width, (ymax - ymin) * image.height);
-    context.fillStyle = '#ffa500';
-    context.fillText(label, xmin * image.width, ymin * image.height > 10 ? ymin * image.height - 5 : 10);
-    context.fillText(label, xmin * image.width, ymax * image.height + 15); // Add label below the bounding box
-}
+    result.innerHTML = ''; // Clear previous results
+    for (let i = 0; i < contours.size(); i++) {
+        const contour = contours.get(i);
+        const approx = new cv.Mat();
+        cv.approxPolyDP(contour, approx, 0.02 * cv.arcLength(contour, true), true);
+        const vertices = approx.rows;
 
-async function detectObjects(model) {
-    try {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const input = tf.browser.fromPixels(canvas).toFloat().expandDims(0);
-        console.log('Input tensor:', input);
-
-        const detectionResult = await model.executeAsync(input);
-        console.log('Detection result:', detectionResult);
-
-        const boxes = detectionResult[0].arraySync();
-        const scores = detectionResult[1].arraySync();
-        const classes = detectionResult[2].arraySync();
-
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        result.innerHTML = ''; // Clear previous results
-        const classLabels = ['label1', 'label2', 'label3']; // Replace with actual class labels
-        for (let i = 0; i < scores[0].length; i++) {
-            if (scores[0][i] > 0.5) {
-                const [ymin, xmin, ymax, xmax] = boxes[0][i];
-                const labelIndex = classes[0][i];
-                const label = classLabels[labelIndex];
-                console.log(`Detected ${label} with score ${scores[0][i]} at [${ymin}, ${xmin}, ${ymax}, ${xmax}]`);
-                drawBoundingBox(canvas, ymin, xmin, ymax, xmax, label);
-                result.innerHTML += `Detected ${label} with score ${scores[0][i]}<br>`;
-            }
+        let shape = '';
+        if (vertices === 3) {
+            shape = 'Triangle';
+        } else if (vertices === 4) {
+            const rect = cv.boundingRect(approx);
+            const aspectRatio = rect.width / rect.height;
+            shape = (aspectRatio >= 0.95 && aspectRatio <= 1.05) ? 'Square' : 'Rectangle';
+        } else if (vertices > 4) {
+            shape = 'Circle';
         }
 
-        tf.dispose([input, detectionResult]);
-    } catch (error) {
-        console.error('Error detecting objects:', error);
+        if (shape) {
+            const moments = cv.moments(contour);
+            const cx = moments.m10 / moments.m00;
+            const cy = moments.m01 / moments.m00;
+            context.strokeStyle = '#ffa500';
+            context.lineWidth = 2;
+            context.strokeRect(cx - 5, cy - 5, 10, 10);
+            context.fillStyle = '#ffa500';
+            context.fillText(shape, cx, cy);
+            result.innerHTML += `Detected ${shape}<br>`;
+        }
+
+        approx.delete();
     }
+
+    src.delete();
+    gray.delete();
+    blurred.delete();
+    edges.delete();
+    contours.delete();
+    hierarchy.delete();
 }
 
-async function main() {
-    const model = await loadModel();
-    captureButton.addEventListener('click', () => {
-        detectObjects(model);
-    });
-}
-
-main();
+captureButton.addEventListener('click', detectShapes);
