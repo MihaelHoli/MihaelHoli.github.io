@@ -32,6 +32,7 @@ function drawBoundingBox(image, ymin, xmin, ymax, xmax, label) {
     context.strokeRect(xmin * image.width, ymin * image.height, (xmax - xmin) * image.width, (ymax - ymin) * image.height);
     context.fillStyle = '#ffa500';
     context.fillText(label, xmin * image.width, ymin * image.height > 10 ? ymin * image.height - 5 : 10);
+    context.fillText(label, xmin * image.width, ymax * image.height + 15); // Add label below the bounding box
 }
 
 async function detectObjects(model) {
@@ -41,28 +42,30 @@ async function detectObjects(model) {
         const input = tf.browser.fromPixels(canvas).toFloat().expandDims(0);
         console.log('Input tensor:', input);
 
-        const result = await model.executeAsync(input);
-        console.log('Detection result:', result);
+        const detectionResult = await model.executeAsync(input);
+        console.log('Detection result:', detectionResult);
 
-        const boxes = result[0].arraySync();
-        const scores = result[1].arraySync();
-        const classes = result[2].arraySync();
+        const boxes = detectionResult[0].arraySync();
+        const scores = detectionResult[1].arraySync();
+        const classes = detectionResult[2].arraySync();
 
         context.clearRect(0, 0, canvas.width, canvas.height);
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
         result.innerHTML = ''; // Clear previous results
+        const classLabels = ['label1', 'label2', 'label3']; // Replace with actual class labels
         for (let i = 0; i < scores[0].length; i++) {
             if (scores[0][i] > 0.5) {
                 const [ymin, xmin, ymax, xmax] = boxes[0][i];
-                const label = classes[0][i];
+                const labelIndex = classes[0][i];
+                const label = classLabels[labelIndex];
                 console.log(`Detected ${label} with score ${scores[0][i]} at [${ymin}, ${xmin}, ${ymax}, ${xmax}]`);
                 drawBoundingBox(canvas, ymin, xmin, ymax, xmax, label);
                 result.innerHTML += `Detected ${label} with score ${scores[0][i]}<br>`;
             }
         }
 
-        tf.dispose([input, result]);
+        tf.dispose([input, detectionResult]);
     } catch (error) {
         console.error('Error detecting objects:', error);
     }
