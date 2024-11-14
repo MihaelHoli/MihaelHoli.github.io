@@ -1,13 +1,10 @@
 {
   "name": "shape-recognition-app",
   "version": "1.0.0",
-  "description": "A web application for recognizing geometric shapes using TensorFlow.js and OpenCV.js",
+  "description": "A web application for recognizing geometric shapes using OpenCV.js",
   "main": "script.js",
   "scripts": {
     "start": "http-server -c-1 ."
-  },
-  "dependencies": {
-    "@tensorflow/tfjs": "^3.11.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.15",

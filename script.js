@@ -43,7 +43,11 @@ function detectShapes() {
             const rect = cv.boundingRect(approx);
             const aspectRatio = rect.width / rect.height;
             shape = (aspectRatio >= 0.95 && aspectRatio <= 1.05) ? 'Square' : 'Rectangle';
-        } else if (vertices > 4) {
+        } else if (vertices === 5) {
+            shape = 'Pentagon';
+        } else if (vertices === 6) {
+            shape = 'Hexagon';
+        } else if (vertices > 6) {
             shape = 'Circle';
         }
 
