@@ -18,7 +18,7 @@ navigator.mediaDevices.getUserMedia({
 
 async function loadModel() {
     try {
-        const model = await tf.loadGraphModel('https://tfhub.dev/google/faster_rcnn/openimages_v4/inception_resnet_v2/1');
+        const model = await tf.loadGraphModel('https://storage.googleapis.com/tfjs-models/savedmodel/ssdlite_mobilenet_v2/model.json');
         console.log('Model učitan:', model);
         return model;
     } catch (error) {
