@@ -2,12 +2,14 @@
   "name": "object-detection",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://MihaelHoli.github.io/MihaelHoli.github.io",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --ignore-pattern out",
-    "deploy": "next build && gh-pages -d out"
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d out"
   },
   "dependencies": {
     "@tensorflow-models/coco-ssd": "^2.2.3",
