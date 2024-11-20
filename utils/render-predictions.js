@@ -48,7 +48,7 @@ let isAudioPlaying = false;
 
 const playAudio = throttle(() => {
   if (!isAudioPlaying) {
-    const audio = new Audio("/MihaelHoli.github.io/Merry Christmas, Filthy Animal Sound.mp3");
+    const audio = new Audio("/Merry Christmas, Filthy Animal Sound.mp3");
     isAudioPlaying = true;
     audio.play();
     audio.onended = () => {
