@@ -14,6 +14,10 @@ const ObjectDetection = ({ predictions }) => {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
+  const videoConstraints = {
+    facingMode: { exact: "environment" } // Use rear camera on phones
+  };
+
   async function runCoco() {
     setIsLoading(true); // Set loading state to true when model loading starts
     const net = await cocoSSDLoad();
@@ -83,6 +87,7 @@ const ObjectDetection = ({ predictions }) => {
             ref={webcamRef}
             className="rounded-md w-full lg:h-[720px]"
             muted
+            videoConstraints={videoConstraints}
           />
           {/* canvas */}
           <canvas
