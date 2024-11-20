@@ -1,10 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  basePath: '',
-  assetPrefix: '',
-  output: 'export',
-  distDir: 'out'
+  basePath: '/MihaelHoli.github.io',
+  assetPrefix: '/MihaelHoli.github.io/',
+  output: 'export'
 };
 
 export default nextConfig;
