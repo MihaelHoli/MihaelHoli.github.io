@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import Webcam from "react-webcam";
-import { load as cocoSSDLoad } from "@tensorflow-models/coco-ssd";
+import {load as cocoSSDLoad} from "@tensorflow-models/coco-ssd";
 import * as tf from "@tensorflow/tfjs";
-import { renderPredictions } from "@/utils/render-predictions";
+import {renderPredictions} from "@/utils/render-predictions";
 
 let detectInterval;
 
@@ -14,7 +14,7 @@ const ObjectDetection = ({ predictions }) => {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
-  const runCoco = useCallback(async () => {
+  async function runCoco() {
     setIsLoading(true); // Set loading state to true when model loading starts
     const net = await cocoSSDLoad();
     setIsLoading(false); // Set loading state to false when model loading completes
@@ -22,7 +22,7 @@ const ObjectDetection = ({ predictions }) => {
     detectInterval = setInterval(() => {
       runObjectDetection(net); // will build this next
     }, 10);
-  }, []);
+  }
 
   async function runObjectDetection(net) {
     if (
@@ -63,7 +63,7 @@ const ObjectDetection = ({ predictions }) => {
   useEffect(() => {
     runCoco();
     showmyVideo();
-  }, [runCoco]);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
