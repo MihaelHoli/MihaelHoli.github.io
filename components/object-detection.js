@@ -16,8 +16,15 @@ const ObjectDetection = ({ predictions }) => {
   const canvasRef = useRef(null);
 
   const videoConstraints = {
-    facingMode: { exact: "environment" } // Use rear camera on phones
+    facingMode: "user" // Default to front camera
   };
+
+  // Check if the device is a phone and switch to rear camera
+  useEffect(() => {
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+      videoConstraints.facingMode = { exact: "environment" };
+    }
+  }, []);
 
   async function runCoco() {
     setIsLoading(true); // Set loading state to true when model loading starts
