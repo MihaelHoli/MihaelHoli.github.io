@@ -130,13 +130,13 @@ const ObjectDetection = ({ predictions }) => {
           {/* switch camera button */}
           <button 
             onClick={switchCamera} 
-            className="absolute top-4 right-4 z-10000 bg-white p-2 rounded-md shadow-lg"
+            className="absolute top-4 right-4 z-10000 bg-white p-2 rounded-md shadow-lg text-black font-bold"
             style={{ zIndex: 10000 }}
           >
             Switch Camera
           </button>
           {isOffline && (
-            <div className="absolute bottom-4 left-4 z-10000 bg-white p-2 rounded-md opacity-75 text-sm">
+            <div className="absolute bottom-4 left-4 z-10000 bg-red-500 text-white p-2 rounded-md opacity-90 text-sm font-bold">
               The application is currently offline. Some features may not be available.
             </div>
           )}
