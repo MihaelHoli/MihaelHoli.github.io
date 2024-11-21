@@ -4,6 +4,8 @@ const urlsToCache = [
   '/index.html',
   '/components/object-detection.js',
   // Add other assets you want to cache
+  'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs', // TensorFlow.js library
+  'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd' // COCO-SSD model
 ];
 
 self.addEventListener('install', event => {
