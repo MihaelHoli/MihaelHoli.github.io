@@ -23,7 +23,7 @@ const ObjectDetection = ({ predictions }) => {
   async function runCoco() {
     setIsLoading(true); // Set loading state to true when model loading starts
     const net = await cocoSSDLoad({base: 'lite_mobilenet_v2'}); // Load the model with caching
-    await net.save('indexeddb://coco-ssd'); // Save the model to IndexedDB for offline use
+    await net.save(tf.io.browserIndexedDB('coco-ssd')); // Save the model to IndexedDB for offline use
     setIsLoading(false); // Set loading state to false when model loading completes
 
     detectInterval = setInterval(() => {
@@ -74,7 +74,7 @@ const ObjectDetection = ({ predictions }) => {
   useEffect(() => {
     const loadModel = async () => {
       try {
-        const net = await tf.loadGraphModel('indexeddb://coco-ssd');
+        const net = await tf.loadGraphModel(tf.io.browserIndexedDB('coco-ssd'));
         setIsLoading(false);
         detectInterval = setInterval(() => {
           runObjectDetection(net);
@@ -129,7 +129,11 @@ const ObjectDetection = ({ predictions }) => {
             className="absolute top-0 left-0 z-99999 w-full lg:h-[720px]"
           />
           {/* switch camera button */}
-          <button onClick={switchCamera} className="absolute top-4 right-4 z-10000 bg-white p-2 rounded-md">
+          <button 
+            onClick={switchCamera} 
+            className="absolute top-4 right-4 z-10000 bg-white p-2 rounded-md shadow-lg"
+            style={{ zIndex: 10000 }}
+          >
             Switch Camera
           </button>
           {isOffline && (
