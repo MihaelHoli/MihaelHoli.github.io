@@ -22,8 +22,7 @@ const ObjectDetection = ({ predictions }) => {
 
   async function runCoco() {
     setIsLoading(true); // Set loading state to true when model loading starts
-    const net = await cocoSSDLoad({base: 'lite_mobilenet_v2'}); // Load the model with caching
-    await net.save(tf.io.browserIndexedDB('coco-ssd')); // Save the model to IndexedDB for offline use
+    const net = await cocoSSDLoad({base: 'lite_mobilenet_v2'}); // Load the model
     setIsLoading(false); // Set loading state to false when model loading completes
 
     detectInterval = setInterval(() => {
@@ -74,13 +73,13 @@ const ObjectDetection = ({ predictions }) => {
   useEffect(() => {
     const loadModel = async () => {
       try {
-        const net = await tf.loadGraphModel(tf.io.browserIndexedDB('coco-ssd'));
+        const net = await cocoSSDLoad({base: 'lite_mobilenet_v2'});
         setIsLoading(false);
         detectInterval = setInterval(() => {
           runObjectDetection(net);
         }, 10);
       } catch (error) {
-        runCoco();
+        console.error("Failed to load model", error);
       }
     };
 
