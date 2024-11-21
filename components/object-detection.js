@@ -10,7 +10,7 @@ let detectInterval;
 
 const ObjectDetection = ({ predictions }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOffline, setIsOffline] = useState(typeof navigator !== 'undefined' && !navigator.onLine);
 
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
@@ -21,7 +21,7 @@ const ObjectDetection = ({ predictions }) => {
 
   // Check if the device is a phone and switch to rear camera
   useEffect(() => {
-    if (/Mobi|Android/i.test(navigator.userAgent)) {
+    if (typeof navigator !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent)) {
       videoConstraints.facingMode = { exact: "environment" };
     }
   }, []);
@@ -88,13 +88,15 @@ const ObjectDetection = ({ predictions }) => {
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
 
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      };
+    }
   }, []);
 
   return (
