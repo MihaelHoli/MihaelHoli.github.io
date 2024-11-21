@@ -10,6 +10,7 @@ let detectInterval;
 
 const ObjectDetection = ({ predictions }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
@@ -76,10 +77,25 @@ const ObjectDetection = ({ predictions }) => {
     }
   }, [predictions]);
 
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
     <div className="mt-8">
       {isLoading ? (
         <div className="gradient-text">Loading AI Model...</div>
+      ) : isOffline ? (
+        <div className="gradient-text">You are offline. Some features may not be available.</div>
       ) : (
         <div className="relative flex justify-center items-center gradient p-1.5 rounded-md">
           {/* webcam */}
