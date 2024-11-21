@@ -136,8 +136,8 @@ const ObjectDetection = ({ predictions }) => {
             Switch Camera
           </button>
           {isOffline && (
-            <div className="absolute bottom-4 left-4 z-10000 bg-white p-2 rounded-md">
-              You are offline. Some features may not be available.
+            <div className="absolute bottom-4 left-4 z-10000 bg-white p-2 rounded-md opacity-75 text-sm">
+              The application is currently offline. Some features may not be available.
             </div>
           )}
         </div>
