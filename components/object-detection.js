@@ -11,24 +11,19 @@ let detectInterval;
 const ObjectDetection = ({ predictions }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(typeof navigator !== 'undefined' && !navigator.onLine);
+  const [facingMode, setFacingMode] = useState("user"); // Default to front camera
 
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
   const videoConstraints = {
-    facingMode: "user" // Default to front camera
+    facingMode: facingMode
   };
-
-  // Check if the device is a phone and switch to rear camera
-  useEffect(() => {
-    if (typeof navigator !== 'undefined' && /Mobi|Android/i.test(navigator.userAgent)) {
-      videoConstraints.facingMode = { exact: "environment" };
-    }
-  }, []);
 
   async function runCoco() {
     setIsLoading(true); // Set loading state to true when model loading starts
-    const net = await cocoSSDLoad();
+    const net = await cocoSSDLoad({base: 'lite_mobilenet_v2'}); // Load the model with caching
+    await net.save('indexeddb://coco-ssd'); // Save the model to IndexedDB for offline use
     setIsLoading(false); // Set loading state to false when model loading completes
 
     detectInterval = setInterval(() => {
@@ -72,10 +67,26 @@ const ObjectDetection = ({ predictions }) => {
     }
   };
 
+  const switchCamera = () => {
+    setFacingMode(prevMode => (prevMode === "user" ? "environment" : "user"));
+  };
+
   useEffect(() => {
-    runCoco();
+    const loadModel = async () => {
+      try {
+        const net = await tf.loadGraphModel('indexeddb://coco-ssd');
+        setIsLoading(false);
+        detectInterval = setInterval(() => {
+          runObjectDetection(net);
+        }, 10);
+      } catch (error) {
+        runCoco();
+      }
+    };
+
+    loadModel();
     showmyVideo();
-  }, []);
+  }, [facingMode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -103,8 +114,6 @@ const ObjectDetection = ({ predictions }) => {
     <div className="mt-8">
       {isLoading ? (
         <div className="gradient-text">Loading AI Model...</div>
-      ) : isOffline ? (
-        <div className="gradient-text">You are offline. Some features may not be available.</div>
       ) : (
         <div className="relative flex justify-center items-center gradient p-1.5 rounded-md">
           {/* webcam */}
@@ -119,6 +128,15 @@ const ObjectDetection = ({ predictions }) => {
             ref={canvasRef}
             className="absolute top-0 left-0 z-99999 w-full lg:h-[720px]"
           />
+          {/* switch camera button */}
+          <button onClick={switchCamera} className="absolute top-4 right-4 z-10000 bg-white p-2 rounded-md">
+            Switch Camera
+          </button>
+          {isOffline && (
+            <div className="absolute bottom-4 left-4 z-10000 bg-white p-2 rounded-md">
+              You are offline. Some features may not be available.
+            </div>
+          )}
         </div>
       )}
     </div>
