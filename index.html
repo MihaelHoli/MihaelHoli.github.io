@@ -290,9 +290,10 @@
     </div>
 
     <div class="row side-by-side" style="margin-top: 20px;"> <!-- Added margin-top -->
-      <div class="row" style="width: 220px;">
-        <label for="hideBoundingBoxesCheckbox">Hide Bounding Boxes</label>
-        <input type="checkbox" id="hideBoundingBoxesCheckbox" onchange="onChangeHideBoundingBoxes(event)">
+      <div class="row" style="width: 220px; display: flex; align-items: center;">
+        <button id="hideBoundingBoxesBtn" class="visible-btn btn-blue" onclick="toggleBoundingBoxes()" style="min-width: 140px;">
+          Hide Bounding Boxes
+        </button>
       </div>
 
       <div id="fps_meter" class="row side-by-side">
@@ -796,6 +797,12 @@
         console.error('Error during page initialization:', error);
       }
     });
+
+    function toggleBoundingBoxes() {
+      withBoxes = !withBoxes;
+      const btn = document.getElementById('hideBoundingBoxesBtn');
+      btn.textContent = withBoxes ? 'Hide Bounding Boxes' : 'Show Bounding Boxes';
+    }
   </script>
 </body>
 </html>
