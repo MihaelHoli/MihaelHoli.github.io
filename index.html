@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Aeye</title>
+  <script src="dist/face-api.js"></script>
+  <script src="js/commons.js"></script>
+  <script src="js/faceDetectionControls.js"></script>
+  <link rel="stylesheet" href="public/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+  <link rel="icon" href="data:,">
+    
+    <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(error => {
+        console.error('ServiceWorker registration failed: ', error);
+        });
+      });
+    }
+    </script>
+    
+    <style>
+    .button-group {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .dark-mode {
+      background-color: #121212;
+      color: #f0f0f0;
+    }
+    
+    .dark-mode .card, .dark-mode .card-panel {
+      background-color: #1e1e1e;
+    }
+    
+    .dark-mode input[type="text"] {
+      color: #f0f0f0;
+      border-bottom: 1px solid #666;
+    }
+    
+    .fullscreen-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      background-color: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .fullscreen-video video, .fullscreen-video canvas {
+      width: 90vw;
+      height: auto;
+      max-height: 80vh;
+      object-fit: contain;
+    }
+    
+    .fullscreen-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      z-index: 10000;
+    }
+    
+    .visible-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 2rem !important;
+      margin: 5px !important;
+      height: 36px !important;
+      line-height: 36px !important;
+      font-size: 16px !important;
+      text-transform: uppercase !important;
+      vertical-align: middle !important;
+      color: white !important;
+      background-color: #26a69a !important;
+      text-align: center !important;
+      letter-spacing: .5px !important;
+      border: none !important;
+      border-radius: 2px !important;
+      cursor: pointer !important;
+      box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2) !important;
+    }
+    
+    .visible-btn i {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: 36px !important;
+      margin-right: 5px !important;
+    }
+    
+    .btn-blue { background-color: #2196F3 !important; }
+    .btn-green { background-color: #4CAF50 !important; }
+    .btn-purple { background-color: #9C27B0 !important; }
+    .btn-amber { background-color: #FFC107 !important; }
+    
+    .button-container {
+      text-align: center; 
+      margin: 20px 0; 
+      padding: 10px; 
+      background-color: #f5f5f5; 
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .dark-mode .button-container {
+      background-color: #2d2d2d;
+    }
+    
+    /* Changed styles for the webcam container and info panel */
+    .webcam-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+    }
+    
+    .webcam-box {
+      position: relative;
+      min-width: 320px;
+      width: 80%;
+      max-width: 800px;
+    }
+    
+    .info-panel {
+      position: relative;
+      width: 80%;
+      max-width: 800px;
+      background-color: rgba(0,0,0,0.05);
+      border-radius: 8px;
+      padding: 15px;
+      font-size: 16px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between; /* Align text to the left and emoji to the right */
+      align-items: center;
+    }
+    
+    .dark-mode .info-panel {
+      background-color: rgba(255,255,255,0.05);
+    }
+    
+    .info-item {
+      margin-bottom: 15px;
+    }
+    
+    .info-label {
+      font-weight: bold;
+      opacity: 0.7;
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    .info-value {
+      font-size: 18px;
+    }
+    
+    .emoji-display {
+      font-size: 80px; /* Increased size */
+      text-align: right; /* Align emoji to the right */
+      margin-bottom: 15px;
+      min-height: 70px;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .webcam-box {
+      width: 90%;
+      min-width: 240px;
+      }
+      
+      .info-panel {
+      width: 90%;
+      font-size: 14px;
+      }
+      
+      .emoji-display {
+      font-size: 40px;
+      min-height: 50px;
+      }
+      
+      .info-value {
+      font-size: 14px;
+      }
+    }
+    
+    /* Make smallest screens usable */
+    @media (max-width: 480px) {
+      .webcam-box {
+      width: 95%;
+      min-width: 220px;
+      }
+      
+      .info-panel {
+      width: 95%;
+      }
+    }
+    </style>
+  </head>
+  <body>
+  <div class="center-content page-container">
+
+    <h4>Aeye</h4>
+    
+    <div class="progress" id="loader">
+      <div class="indeterminate"></div>
+    </div>
+    
+    <div id="webcamStatus" class="center-align" style="margin-bottom: 10px;">
+      <span id="webcamStatusText" class="chip">Waiting for webcam access...</span>
+      <span id="webcamError" class="red-text" style="display: none;"></span>
+    </div>
+    
+    <div class="button-container">
+      <button id="flipCameraBtn" class="visible-btn btn-blue" onclick="flipCamera()" style="min-width: 140px;">
+        Flip Camera
+      </button>
+      
+      <button id="fullscreenBtn" class="visible-btn btn-green" onclick="toggleFullscreen()" style="min-width: 140px;">
+        Fullscreen
+      </button>
+      
+      <button id="screenshotBtn" class="visible-btn btn-purple" onclick="takeScreenshot()" style="min-width: 140px;">
+        Screenshot
+      </button>
+      
+      <button id="darkModeBtn" class="visible-btn btn-amber" onclick="toggleDarkMode()" style="min-width: 140px;">
+        Dark Mode
+      </button>
+    </div>
+    
+    <div id="backup-buttons" style="display: none; text-align: center; margin: 10px 0;">
+      <p style="font-weight: bold; color: red;">Ako ne vidite gumbe iznad, koristite ove:</p>
+      <a href="#" onclick="flipCamera(); return false;" style="display: inline-block; margin: 5px; padding: 8px 16px; background: blue; color: white; text-decoration: none; border-radius: 4px;">Flip Camera</a>
+      <a href="#" onclick="toggleFullscreen(); return false;" style="display: inline-block; margin: 5px; padding: 8px 16px; background: green; color: white; text-decoration: none; border-radius: 4px;">Fullscreen</a>
+      <a href="#" onclick="takeScreenshot(); return false;" style="display: inline-block; margin: 5px; padding: 8px 16px; background: purple; color: white; text-decoration: none; border-radius: 4px;">Screenshot</a>
+      <a href="#" onclick="toggleDarkMode(); return false;" style="display: inline-block; margin: 5px; padding: 8px 16px; background: orange; color: white; text-decoration: none; border-radius: 4px;">Dark Mode</a>
+    </div>
+    
+    <div class="webcam-container">
+      <!-- Left side - webcam with its original container -->
+      <div class="webcam-box margin">
+        <video onloadedmetadata="onPlay(this)" id="inputVideo" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      
+      <!-- Right side - information panel -->
+      <div class="info-panel" id="detection-info">
+        <div>
+          <div class="info-item">
+            <span class="info-label">Age</span>
+            <span class="info-value" id="age-display">-</span>
+          </div>
+          
+          <div class="info-item">
+            <span class="info-label">Gender</span>
+            <span class="info-value" id="gender-display">-</span>
+          </div>
+          
+          <div class="info-item">
+            <span class="info-label">Emotions</span>
+            <div class="info-value" id="emotions-display">-</div>
+          </div>
+        </div>
+        <div class="emoji-display" id="emoji-display">🔍</div>
+      </div>
+    </div>
+
+    <div class="row side-by-side">
+      <div class="row" style="width: 220px;">
+        <input type="checkbox" id="hideBoundingBoxesCheckbox" onchange="onChangeHideBoundingBoxes(event)" />
+        <label for="hideBoundingBoxesCheckbox">Hide Bounding Boxes</label>
+      </div>
+
+      <div id="fps_meter" class="row side-by-side">
+        <div>
+          <label for="time">Time:</label>
+          <input disabled value="-" id="time" type="text" class="bold">
+          <label for="fps">Estimated Fps:</label>
+          <input disabled value="-" id="fps" type="text" class="bold">
+        </div>
+      </div>
+    </div>
+
+    <span id="tiny_face_detector_controls">
+      <div class="row side-by-side">
+        <div class="row input-field" style="margin-right: 20px;">
+          <select id="inputSize">
+            <option value="" disabled selected>Input Size:</option>
+            <option value="128">128 x 128 (Faster)</option>
+            <option value="160">160 x 160</option>
+            <option value="224">224 x 224 (Balanced)</option>
+            <option value="320">320 x 320</option>
+            <option value="416">416 x 416</option>
+            <option value="512">512 x 512 (More accurate)</option>
+          </select>
+          <label>Input Size</label>
+        </div>
+        <div class="row">
+          <label for="scoreThreshold">Score Threshold:</label>
+          <input disabled value="0.5" id="scoreThreshold" type="text" class="bold">
+        </div>
+        <button
+          class="waves-effect waves-light btn"
+          onclick="onDecreaseScoreThreshold()"
+        >
+          <i class="material-icons left">-</i>
+        </button>
+        <button
+          class="waves-effect waves-light btn"
+          onclick="onIncreaseScoreThreshold()"
+        >
+          <i class="material-icons left">+</i>
+        </button>
+      </div>
+    </span>
+
+  </div>
+
+  <script>
+    let forwardTimes = [];
+    let withBoxes = true;
+    let predictedAges = [];
+    let isCameraFlipped = false;
+    let currentStream = null;
+    let facingMode = "user";
+    let isDarkMode = false;
+    let isFullscreen = false;
+    
+    function getTinyFaceDetectorOptions() {
+      const inputSize = $('#inputSize').val();
+      const scoreThreshold = $('#scoreThreshold').val();
+      return new faceapi.TinyFaceDetectorOptions({ inputSize: parseInt(inputSize), scoreThreshold: parseFloat(scoreThreshold) });
+    }
+    
+    function isTinyFaceDetectorLoaded() {
+      return !!faceapi.nets.tinyFaceDetector.params;
+    }
+
+    function onChangeHideBoundingBoxes(e) {
+      withBoxes = !$(e.target).prop('checked');
+    }
+
+    function updateTimeStats(timeInMs) {
+      forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30);
+      const avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length;
+      $('#time').val(`${Math.round(avgTimeInMs)} ms`);
+      $('#fps').val(`${faceapi.utils.round(1000 / avgTimeInMs)}`);
+    }
+
+    function interpolateAgePredictions(age) {
+      predictedAges = [age].concat(predictedAges).slice(0, 30);
+      const avgPredictedAge = predictedAges.reduce((total, a) => total + a) / predictedAges.length;
+      return avgPredictedAge;
+    }
+
+    // Add a map of emotions to emojis
+    const emotionEmojis = {
+      'neutral': '😐',
+      'happy': '😀',
+      'sad': '😢',
+      'angry': '😠',
+      'fearful': '😨',
+      'disgusted': '🤢',
+      'surprised': '😲'
+    };
+
+    async function onPlay() {
+      const videoEl = $('#inputVideo').get(0);
+
+      if(videoEl.paused || videoEl.ended || !isTinyFaceDetectorLoaded())
+        return setTimeout(() => onPlay());
+
+      try {
+        const options = getTinyFaceDetectorOptions();
+        const ts = Date.now();
+
+        const result = await faceapi.detectSingleFace(videoEl, options)
+          .withFaceExpressions()
+          .withAgeAndGender();
+
+        updateTimeStats(Date.now() - ts);
+
+        if (result) {
+          const canvas = $('#overlay').get(0);
+          const dims = faceapi.matchDimensions(canvas, videoEl, true);
+
+          const resizedResult = faceapi.resizeResults(result, dims);
+          const minConfidence = 0.05;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          if (withBoxes) {
+            faceapi.draw.drawDetections(canvas, resizedResult);
+          }
+          
+          if (!resizedResult || !resizedResult.detection || !resizedResult.detection.box) {
+            setTimeout(() => onPlay());
+            return;
+          }
+          
+          const box = resizedResult.detection.box;
+          
+          let expressionsArray = [];
+          let topEmotion = 'neutral';
+          let topEmotionConfidence = 0;
+          
+          if (resizedResult.expressions) {
+            const expressions = resizedResult.expressions;
+            expressionsArray = Object.entries(expressions)
+              .sort((a, b) => b[1] - a[1]) 
+              .filter(expr => expr[1] > minConfidence) 
+              .slice(0, 3)
+              .map(([emotion, confidence]) => `${emotion}: ${faceapi.utils.round(confidence, 2)}`);
+              
+            // Get the top emotion for the emoji
+            if (expressionsArray.length > 0) {
+              const [emotion, confidence] = Object.entries(expressions)
+                .sort((a, b) => b[1] - a[1])[0];
+              topEmotion = emotion;
+              topEmotionConfidence = confidence;
+            }
+          }
+          
+          // Update the side panel
+          if (resizedResult.age !== undefined && resizedResult.gender) {
+            const { age, gender, genderProbability } = resizedResult;
+            const interpolatedAge = interpolateAgePredictions(age);
+            
+            // Update age display
+            $('#age-display').text(`${faceapi.utils.round(interpolatedAge, 0)} years`);
+            
+            // Update gender display
+            $('#gender-display').text(`${gender} (${faceapi.utils.round(genderProbability)})`);
+            
+            // Keep the existing text display below face
+            const bottomLeftPosition = new faceapi.Point(
+              box.bottomLeft.x, 
+              box.bottomLeft.y + 30
+            );
+            
+            new faceapi.draw.DrawTextField(
+              [
+                `${faceapi.utils.round(interpolatedAge, 0)} years`,
+                `${gender} (${faceapi.utils.round(genderProbability)})`
+              ],
+              bottomLeftPosition
+            ).draw(canvas);
+          } else {
+            // Clear displays if no data
+            $('#age-display').text('-');
+            $('#gender-display').text('-');
+          }
+          
+          // Update emotions display
+          if (expressionsArray.length > 0) {
+            $('#emotions-display').html(expressionsArray.join('<br>'));
+            
+            // Update emoji based on top emotion
+            $('#emoji-display').text(emotionEmojis[topEmotion] || '🤔');
+            
+            // Keep existing right-side text display
+            const expressionsLength = expressionsArray.length;
+            const bottomRightPosition = new faceapi.Point(
+              box.bottomRight.x - expressionsLength * 20,
+              box.bottomRight.y + 30
+            );
+            
+            new faceapi.draw.DrawTextField(
+              expressionsArray,
+              bottomRightPosition
+            ).draw(canvas);
+          } else {
+            $('#emotions-display').text('-');
+            $('#emoji-display').text('🔍');
+          }
+        } else {
+          // Clear displays if no face detected
+          $('#age-display').text('-');
+          $('#gender-display').text('-');
+          $('#emotions-display').text('-');
+          $('#emoji-display').text('🔍');
+        }
+      } catch (error) {
+        console.error('Error in onPlay:', error);
+      }
+
+      setTimeout(() => onPlay());
+    }
+    
+    async function flipCamera() {
+      try {
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+        }
+
+        facingMode = facingMode === "user" ? "environment" : "user";
+        
+        $('#flipCameraBtn').html(`<i class="material-icons left">flip</i> ${facingMode === "user" ? "Front Camera" : "Back Camera"}`);
+        
+        $('#webcamStatusText').text('Switching camera...');
+        
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: facingMode 
+          } 
+        });
+        
+        const videoEl = $('#inputVideo').get(0);
+        videoEl.srcObject = stream;
+        currentStream = stream;
+        
+        // Never mirror the camera - per request
+        $(videoEl).css('transform', 'scaleX(1)');
+        $('#overlay').css('transform', 'scaleX(1)');
+        
+        $('#webcamStatusText').text('Camera active');
+      } catch (error) {
+        console.error('Error flipping camera:', error);
+        $('#webcamStatusText').text('Error flipping camera');
+        $('#webcamError').text(error.message).show();
+      }
+    }
+    
+    async function run() {
+      try {
+        $('#webcamStatusText').text('Loading AI models...');
+        
+        // Check camera hardware before loading models
+        await updateCameraButtonVisibility();
+        
+        const modelPath = './weights';
+        
+        console.log('Loading models from:', modelPath);
+        
+        console.log('Loading face detection model...');
+        await faceapi.loadTinyFaceDetectorModel(modelPath);
+        
+        console.log('Loading face expression model...');
+        await faceapi.loadFaceExpressionModel(modelPath);
+        
+        console.log('Loading age and gender model...');
+        await faceapi.nets.ageGenderNet.load(modelPath);
+        
+        if (isMobileDevice()) {
+          changeInputSize(160);
+          $('#inputSize').val('160');
+          $('#inputSize').material_select();
+        } else {
+          changeInputSize(224);
+          $('#inputSize').val('224');
+          $('#inputSize').material_select();
+        }
+        
+        console.log('Models loaded, accessing webcam...');
+        $('#webcamStatusText').text('Requesting webcam access...');
+
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: facingMode 
+          } 
+        });
+        currentStream = stream;
+        const videoEl = $('#inputVideo').get(0);
+        videoEl.srcObject = stream;
+        
+        // Initially don't mirror - per request
+        $(videoEl).css('transform', 'scaleX(1)');
+        $('#overlay').css('transform', 'scaleX(1)');
+        
+        $('#webcamStatusText').text('Webcam active');
+        $('#webcamStatusText').addClass('green-text');
+        
+        $('#flipCameraBtn').html(`<i class="material-icons left">flip</i> ${facingMode === "user" ? "Front Camera" : "Back Camera"}`);
+        
+        try {
+          const savedDarkMode = localStorage.getItem('aeye-dark-mode');
+          if (savedDarkMode === 'true') {
+            toggleDarkMode();
+          }
+        } catch (e) {
+          console.log('Could not load saved preferences');
+        }
+      } catch (error) {
+        console.error('Error during initialization:', error);
+        console.error('Error details:', error.stack);
+        $('#webcamStatusText').text('Error:');
+        $('#webcamError').text(error.message).show();
+        $('#webcamStatusText').addClass('red-text');
+        alert('Failed to initialize: ' + error.message);
+      }
+    }
+
+    function updateResults() {}
+
+    function toggleDarkMode() {
+      isDarkMode = !isDarkMode;
+      
+      if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        $('#darkModeBtn').html('<i class="material-icons left">brightness_7</i> Light Mode');
+        
+        // Update fullscreen background if in fullscreen mode
+        if (isFullscreen) {
+          $('.fullscreen-video').css('background-color', '#121212');
+        }
+      } else {
+        document.body.classList.remove('dark-mode');
+        $('#darkModeBtn').html('<i class="material-icons left">brightness_4</i> Dark Mode');
+        
+        // Update fullscreen background if in fullscreen mode
+        if (isFullscreen) {
+          $('.fullscreen-video').css('background-color', '#000000');
+        }
+      }
+      
+      try {
+        localStorage.setItem('aeye-dark-mode', isDarkMode ? 'true' : 'false');
+      } catch (e) {
+        console.log('Could not save dark mode preference');
+      }
+    }
+    
+    function toggleFullscreen() {
+      isFullscreen = !isFullscreen;
+      
+      const videoContainer = $('.webcam-box');
+      const videoEl = $('#inputVideo').get(0);
+      const canvasEl = $('#overlay').get(0);
+      
+      if (isFullscreen) {
+        const fullscreenDiv = $('<div class="fullscreen-video"></div>');
+        const controlsDiv = $('<div class="fullscreen-controls"></div>');
+        const exitBtn = $('<button class="visible-btn" style="background-color: #F44336 !important;"><i class="material-icons">fullscreen_exit</i> Exit Fullscreen</button>');
+        
+        exitBtn.click(toggleFullscreen);
+        controlsDiv.append(exitBtn);
+        
+        // Create a container to maintain proper alignment
+        const mediaContainer = $('<div style="position: relative; width: 100%; text-align: center;"></div>');
+        
+        // Apply proper styling to make video larger
+        $('#inputVideo, #overlay').appendTo(mediaContainer);
+        videoEl.style.width = '100%';
+        canvasEl.style.position = 'absolute';
+        canvasEl.style.left = '0';
+        canvasEl.style.top = '0';
+        canvasEl.style.width = '100%';
+        canvasEl.style.height = '100%';
+        
+        fullscreenDiv.append(mediaContainer);
+        fullscreenDiv.append(controlsDiv);
+        
+        // Apply dark mode if active
+        if (isDarkMode) {
+          fullscreenDiv.css('background-color', '#121212');
+          exitBtn.css('background-color', '#F44336');
+        }
+        
+        $('body').append(fullscreenDiv);
+        
+        $('#fullscreenBtn').html('<i class="material-icons left">fullscreen_exit</i> Exit Fullscreen');
+      } else {
+        // Reset styles when exiting fullscreen
+        $('#inputVideo, #overlay').appendTo($('.webcam-box'));
+        videoEl.style.width = '';
+        canvasEl.style.position = '';
+        canvasEl.style.left = '';
+        canvasEl.style.top = '';
+        canvasEl.style.width = '';
+        canvasEl.style.height = '';
+        
+        $('.fullscreen-video').remove();
+        
+        $('#fullscreenBtn').html('<i class="material-icons left">fullscreen</i> Fullscreen');
+      }
+    }
+    
+    function takeScreenshot() {
+      const canvas = $('#overlay').get(0);
+      const video = $('#inputVideo').get(0);
+      
+      const screenshotCanvas = document.createElement('canvas');
+      const context = screenshotCanvas.getContext('2d');
+      
+      screenshotCanvas.width = video.videoWidth || canvas.width;
+      screenshotCanvas.height = video.videoHeight || canvas.height;
+      
+      context.drawImage(video, 0, 0, screenshotCanvas.width, screenshotCanvas.height);
+      context.drawImage(canvas, 0, 0, screenshotCanvas.width, screenshotCanvas.height);
+      
+      context.font = '14px Arial';
+      context.fillStyle = 'white';
+      context.fillText(`Aeye - ${new Date().toLocaleString()}`, 10, 20);
+      
+      const link = document.createElement('a');
+      link.download = `aeye-snapshot-${Date.now()}.jpg`;
+      link.href = screenshotCanvas.toDataURL('image/jpeg', 0.8);
+      link.click();
+      
+      M.toast({html: 'Screenshot saved!', classes: 'rounded green'});
+    }
+    
+    function isMobileDevice() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    function checkButtonsVisibility() {
+      setTimeout(function() {
+        const buttonsVisible = $('#flipCameraBtn').is(':visible') && 
+                              $('#fullscreenBtn').is(':visible') &&
+                              $('#screenshotBtn').is(':visible') &&
+                              $('#darkModeBtn').is(':visible');
+        
+        if (!buttonsVisible) {
+          console.log('Gumbi nisu vidljivi, prikazujem backup gumbe');
+          $('#backup-buttons').show();
+        }
+      }, 2000);
+    }
+    
+    function reloadIcons() {
+      const iconLink = document.createElement('link');
+      iconLink.rel = 'stylesheet';
+      iconLink.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
+      document.head.appendChild(iconLink);
+      
+      setTimeout(function() {
+        location.reload();
+      }, 1000);
+    }
+
+    // Check if device has multiple cameras
+    async function hasMultipleCameras() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        return videoDevices.length > 1;
+      } catch (error) {
+        console.error('Error detecting cameras:', error);
+        return false;
+      }
+    }
+    
+    // Update button visibility based on camera count
+    async function updateCameraButtonVisibility() {
+      const multipleCameras = await hasMultipleCameras();
+      
+      if (!multipleCameras) {
+        // Hide the flip camera button if only one camera is available
+        $('#flipCameraBtn').hide();
+      } else {
+        $('#flipCameraBtn').show();
+      }
+    }
+
+    $(document).ready(function() {
+      try {        
+        $('#inputSize').val('224');
+        $('#inputSize').material_select();
+        
+        checkButtonsVisibility();
+        
+        // Update camera button visibility on window resize
+        // (useful if external camera is connected/disconnected)
+        $(window).on('resize', function() {
+          updateCameraButtonVisibility();
+        });
+        
+        run();
+      } catch (error) {
+        console.error('Error during page initialization:', error);
+      }
+    });
+  </script>
+</body>
+</html>
