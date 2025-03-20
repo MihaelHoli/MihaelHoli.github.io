@@ -127,7 +127,6 @@
       background-color: #2d2d2d;
     }
     
-    /* Changed styles for the webcam container and info panel */
     .webcam-container {
       display: flex;
       flex-direction: column;
@@ -153,11 +152,11 @@
       padding: 15px;
       font-size: 16px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      margin: 5 auto;
+      margin: 0 auto;
       display: flex;
       justify-content: space-between; /* Align text to the left and emoji to the right */
       align-items: center;
-      height: 300px;
+      height: 200px;
     }
     
     .dark-mode .info-panel {
@@ -292,7 +291,6 @@
 
     <div class="row side-by-side" style="margin-top: 20px;"> <!-- Added margin-top -->
       <div class="row" style="width: 220px;">
-        <input type="checkbox" id="hideBoundingBoxesCheckbox" onchange="onChangeHideBoundingBoxes(event)" />
         <label for="hideBoundingBoxesCheckbox">Hide Bounding Boxes</label>
       </div>
 
