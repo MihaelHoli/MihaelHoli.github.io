@@ -157,6 +157,7 @@
       display: flex;
       justify-content: space-between; /* Align text to the left and emoji to the right */
       align-items: center;
+      height: 150px; /* Fixed height */
     }
     
     .dark-mode .info-panel {
@@ -289,7 +290,7 @@
       </div>
     </div>
 
-    <div class="row side-by-side">
+    <div class="row side-by-side" style="margin-top: 20px;"> <!-- Added margin-top -->
       <div class="row" style="width: 220px;">
         <input type="checkbox" id="hideBoundingBoxesCheckbox" onchange="onChangeHideBoundingBoxes(event)" />
         <label for="hideBoundingBoxesCheckbox">Hide Bounding Boxes</label>
