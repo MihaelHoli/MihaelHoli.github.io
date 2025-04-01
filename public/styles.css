@@ -82,3 +82,195 @@ input[type="file"]::-webkit-file-upload-button {
     color: #fff;
     border-radius: .2em;
 }
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.dark-mode {
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+.dark-mode .card, .dark-mode .card-panel {
+  background-color: #1e1e1e;
+}
+
+.dark-mode input[type="text"] {
+  color: #f0f0f0;
+  border-bottom: 1px solid #666;
+}
+
+.fullscreen-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background-color: #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.fullscreen-video video, .fullscreen-video canvas {
+  width: 90vw;
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+.fullscreen-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 10000;
+}
+
+.visible-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 2rem !important;
+  margin: 5px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 14px !important; /* Adjusted font size */
+  text-transform: uppercase !important;
+  vertical-align: middle !important;
+  color: white !important;
+  background-color: #26a69a !important;
+  text-align: center !important;
+  letter-spacing: .5px !important;
+  border: none !important;
+  border-radius: 2px !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12), 0 3px 1px -2px rgba(0,0,0,0.2) !important;
+}
+
+.visible-btn i {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 36px !important;
+  margin-right: 5px !important;
+}
+
+.btn-blue { background-color: #2196F3 !important; }
+.btn-green { background-color: #4CAF50 !important; }
+.btn-purple { background-color: #9C27B0 !important; }
+.btn-amber { background-color: #FFC107 !important; }
+
+.button-container {
+  text-align: center; 
+  margin: 20px 0; 
+  padding: 10px; 
+  background-color: #f5f5f5; 
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.dark-mode .button-container {
+  background-color: #2d2d2d;
+}
+
+.webcam-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.webcam-box {
+  position: relative;
+  min-width: 320px;
+  width: 80%;
+  max-width: 800px;
+}
+
+.info-panel {
+  position: relative;
+  width: 80%;
+  max-width: 800px;
+  background-color: rgba(0,0,0,0.05);
+  border-radius: 8px;
+  padding: 15px;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between; /* Align text to the left and emoji to the right */
+  align-items: center;
+  height: 250px;
+}
+
+.dark-mode .info-panel {
+  background-color: rgba(255,255,255,0.05);
+}
+
+.info-item {
+  margin-bottom: 15px;
+}
+
+.info-label {
+  font-weight: bold;
+  opacity: 0.7;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.info-value {
+  font-size: 18px;
+}
+
+.emoji-display {
+  font-size: 80px; /* Increased size */
+  text-align: right; /* Align emoji to the right */
+  margin-bottom: 15px;
+  min-height: 70px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .webcam-box {
+    width: 90%;
+    min-width: 240px;
+  }
+  
+  .info-panel {
+    width: 90%;
+    font-size: 14px;
+  }
+  
+  .emoji-display {
+    font-size: 40px;
+    min-height: 50px;
+  }
+  
+  .info-value {
+    font-size: 14px;
+  }
+}
+
+/* Make smallest screens usable */
+@media (max-width: 480px) {
+  .webcam-box {
+    width: 95%;
+    min-width: 220px;
+  }
+  
+  .info-panel {
+    width: 95%;
+  }
+}
