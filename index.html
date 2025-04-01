@@ -804,6 +804,28 @@
       const btn = document.getElementById('hideBoundingBoxesBtn');
       btn.textContent = withBoxes ? 'Hide Box' : 'Show Box'; // Shortened text
     }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      const installButton = document.createElement('button');
+      installButton.textContent = 'Install App';
+      installButton.style.position = 'fixed';
+      installButton.style.bottom = '10px';
+      installButton.style.right = '10px';
+      document.body.appendChild(installButton);
+
+      installButton.addEventListener('click', () => {
+        e.prompt();
+        e.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          installButton.remove();
+        });
+      });
+    });
   </script>
 </body>
 </html>
