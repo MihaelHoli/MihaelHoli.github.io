@@ -351,6 +351,7 @@
     let facingMode = "user";
     let isDarkMode = false;
     let isFullscreen = false;
+    let deferredPrompt;
     
     function getTinyFaceDetectorOptions() {
       const inputSize = $('#inputSize').val();
@@ -807,6 +808,8 @@
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
+      deferredPrompt = e;
+
       const installButton = document.createElement('button');
       installButton.textContent = 'Install App';
       installButton.style.position = 'fixed';
@@ -815,13 +818,14 @@
       document.body.appendChild(installButton);
 
       installButton.addEventListener('click', () => {
-        e.prompt();
-        e.userChoice.then((choiceResult) => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
           if (choiceResult.outcome === 'accepted') {
             console.log('User accepted the install prompt');
           } else {
             console.log('User dismissed the install prompt');
           }
+          deferredPrompt = null;
           installButton.remove();
         });
       });

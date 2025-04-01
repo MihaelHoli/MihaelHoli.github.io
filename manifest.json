@@ -1,7 +1,7 @@
 {
   "name": "Aeye",
   "short_name": "Aeye",
-  "start_url": "/index.html",
+  "start_url": "./index.html?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2196F3",
